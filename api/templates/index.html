@@ -498,56 +498,91 @@
         function displayVideoInfo(info) {
             const infoDiv = document.getElementById('videoInfo');
             
-            let formatsHtml = '';
-            if (info.formats && info.formats.length > 0) {
-                formatsHtml = '<h5 class="mt-4">Available Formats:</h5>';
-                info.formats.forEach(format => {
-                    const fileSize = format.filesize ? `${(format.filesize / 1024 / 1024).toFixed(2)} MB` : 'Unknown';
-                    const hasAudio = format.has_audio || (format.acodec && format.acodec !== 'none');
-                    const hasVideo = format.has_video || (format.vcodec && format.vcodec !== 'none');
-                    const isBest = format.is_best || false;
-                    const isVirtual = format.is_virtual || false;
-                    
-                    // Only show formats that have both video and audio
-                    if (hasAudio && hasVideo) {
-                        // Audio indicator
-                        let audioIndicator = '';
-                        if (isVirtual) {
-                            audioIndicator = '<span class="audio-indicator has-audio"><i class="fas fa-magic"></i> Combined (Video+Audio)</span>';
-                        } else {
-                            audioIndicator = '<span class="audio-indicator has-audio"><i class="fas fa-volume-up"></i> Audio + Video</span>';
-                        }
-                        
-                        let formatClass = 'format-option';
-                        if (isBest) {
-                            formatClass += ' best-format';
-                        } else if (isVirtual) {
-                            formatClass += ' virtual-format';
-                        }
-                        
-                        formatsHtml += `
-                            <div class="${formatClass}" onclick="selectFormat('${format.format_id}', this)">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>${format.resolution}</strong> (${format.ext})
-                                        ${audioIndicator}
-                                        <br><small class="text-muted">Video: ${format.vcodec || 'none'} | Audio: ${format.acodec || 'none'}</small>
-                                        ${isVirtual ? '<br><small class="text-info"><i class="fas fa-magic"></i> Auto-merged format</small>' : ''}
-                                    </div>
-                                    <div class="text-end">
-                                        <small>Size: ${fileSize}</small>
-                                        ${format.fps ? `<br><small>FPS: ${format.fps}</small>` : ''}
-                                    </div>
+            // Show any messages from the backend
+            let messageHtml = '';
+            if (info.message) {
+                messageHtml = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> ${info.message}
+                        ${info.command ? `<br><code>${info.command}</code>` : ''}
+                    </div>
+                `;
+            }
+            
+            if (info.is_playlist) {
+                let videosHtml = '';
+                if (info.videos && info.videos.length > 0) {
+                    videosHtml = '<h6 class="mt-3">Videos in Playlist (showing first 10):</h6>';
+                    info.videos.forEach((video, index) => {
+                        videosHtml += `
+                            <div class="d-flex align-items-center mb-2 p-2 border rounded">
+                                <div>
+                                    <strong>${index + 1}. ${video.title}</strong><br>
+                                    <small class="text-muted">Duration: ${formatDuration(video.duration)}</small>
                                 </div>
                             </div>
                         `;
-                    }
-                });
-            }
+                    });
+                } else {
+                    videosHtml = '<p class="text-muted">Playlist detected but video details not available in serverless mode.</p>';
+                }
 
-            infoDiv.innerHTML = `
-                <div class="video-info-card">
-                    <div class="row">
+                infoDiv.innerHTML = `
+                    <div class="info-card">
+                        ${messageHtml}
+                        <h4><i class="fas fa-list-ol"></i> ${info.title}</h4>
+                        <p><strong>Uploader:</strong> ${info.uploader}</p>
+                        <p><strong>Total Videos:</strong> ${info.video_count}</p>
+                        ${videosHtml}
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-terminal"></i> <strong>To download this playlist:</strong><br>
+                            <code>yt-dlp "${document.getElementById('videoUrl').value}"</code>
+                        </div>
+                    </div>
+                `;
+            } else {
+                let formatsHtml = '';
+                if (info.formats && info.formats.length > 0) {
+                    formatsHtml = '<h6 class="mt-3">Available Formats:</h6>';
+                    info.formats.forEach(format => {
+                        const fileSize = format.filesize ? `${(format.filesize / 1024 / 1024).toFixed(2)} MB` : 'Unknown';
+                        formatsHtml += `
+                            <div class="d-flex justify-content-between align-items-center p-2 border rounded mb-2">
+                                <div>
+                                    <strong>${format.resolution}</strong> (${format.ext})
+                                    <br><small class="text-muted">Audio: ${format.has_audio ? 'Yes' : 'No'} | Video: ${format.has_video ? 'Yes' : 'No'}</small>
+                                </div>
+                                <div>
+                                    <small>Size: ${fileSize}</small>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                infoDiv.innerHTML = `
+                    <div class="info-card">
+                        ${messageHtml}
+                        <div class="row">
+                            <div class="col-md-4">
+                                <img src="${info.thumbnail}" class="img-fluid rounded" alt="Video thumbnail" onerror="this.style.display='none'">
+                            </div>
+                            <div class="col-md-8">
+                                <h4>${info.title}</h4>
+                                <p><strong>Uploader:</strong> ${info.uploader}</p>
+                                <p><strong>Duration:</strong> ${formatDuration(info.duration)}</p>
+                                <p><strong>Views:</strong> ${info.view_count ? info.view_count.toLocaleString() : 'N/A'}</p>
+                            </div>
+                        </div>
+                        ${formatsHtml}
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-terminal"></i> <strong>To download this video:</strong><br>
+                            <code>yt-dlp "${document.getElementById('videoUrl').value}"</code>
+                        </div>
+                    </div>
+                `;
+            }
+        }
                         <div class="col-md-4">
                             <img src="${info.thumbnail}" class="img-fluid rounded" alt="Video thumbnail">
                         </div>
