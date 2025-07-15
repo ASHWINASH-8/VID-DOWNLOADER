@@ -7,7 +7,7 @@ import yt_dlp
 import re
 
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'fallback-secret-key')
+app.secret_key = os.getenv('SECRET_KEY', 'vercel-video-downloader-2025')
 
 # Simple URL validation
 def is_valid_url(url):

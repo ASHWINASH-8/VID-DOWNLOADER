@@ -13,7 +13,6 @@
     }
   ],
   "env": {
-    "FLASK_ENV": "production",
-    "SECRET_KEY": "@secret_key"
+    "FLASK_ENV": "production"
   }
 }
