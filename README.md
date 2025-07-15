@@ -1,23 +1,36 @@
-# Video Downloader Web Application
+# 🎬 Video Downloader Web App
 
-A modern, feature-rich web application for downloading videos from popular platforms like YouTube, Instagram, TikTok, and more.
+A modern web application for downloading videos from YouTube, Instagram, and other platforms. Features single video downloads, playlist support, and batch processing with Instagram Reels CSV.
 
-## Features
+![Video Downloader](https://img.shields.io/badge/Python-3.11+-blue.svg)
+![Flask](https://img.shields.io/badge/Flask-2.3.3-green.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-- **Single Video Download**: Download individual videos by URL
-- **Smart Batch Download**: Upload files or paste URLs (including YouTube playlists) for bulk downloads
-- **Playlist Integration**: Automatically expands YouTube playlist URLs into individual videos
-- **Format Selection**: Choose from available video quality and formats
-- **Real-time Progress**: Live download progress tracking
-- **File Management**: View and download completed files
-- **Cross-platform Support**: Works on Windows, macOS, and Linux
-- **Modern UI**: Beautiful, responsive web interface
+## ✨ Features
 
-## Supported Platforms
+- 🎥 **YouTube Videos & Playlists** - Download single videos or entire playlists
+- 📱 **Instagram Reels** - Download Instagram reels individually or in batch
+- 📋 **CSV Batch Processing** - Upload CSV files with multiple URLs
+- 🎛️ **Format Selection** - Choose video quality and format
+- 📊 **Real-time Progress** - Live download progress tracking
+- 🌐 **Web Interface** - Beautiful, responsive design
+- 🔄 **Auto Playlist Detection** - Automatically detects and processes playlists
 
-- YouTube
-- Instagram
-- TikTok
+## 🚀 Quick Deploy
+
+### Deploy to Railway (Recommended)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template)
+
+1. Click the button above or go to [Railway](https://railway.app)
+2. Connect your GitHub repository
+3. Railway will automatically deploy using the included configuration
+4. Your app will be live at `yourapp.railway.app`
+
+### Deploy to Render
+1. Go to [Render](https://render.com)
+2. Create a new "Web Service"
+3. Connect your GitHub repository
+4. Render will automatically detect and deploy
 - Twitter/X
 - Facebook
 - And many more (thanks to yt-dlp)

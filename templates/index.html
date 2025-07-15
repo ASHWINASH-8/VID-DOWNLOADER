@@ -237,6 +237,34 @@
             50% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5); }
             100% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3); }
         }
+
+        /* Playlist specific styles */
+        .playlist-info-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .playlist-videos {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .video-item {
+            background: white;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .video-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .video-thumbnail img {
+            border: 2px solid #e9ecef;
+        }
     </style>
 </head>
 <body>
@@ -403,7 +431,7 @@
     <script>
         let selectedFormatId = null;
         let currentVideoInfo = null;
-
+        
         function getVideoInfo() {
             const url = document.getElementById('videoUrl').value.trim();
             if (!url) {
@@ -426,7 +454,12 @@
             .then(data => {
                 if (data.success) {
                     currentVideoInfo = data.data;
-                    displayVideoInfo(data.data);
+                    // Check if this is a playlist
+                    if (data.data.is_playlist) {
+                        displayPlaylistInfo(data.data);
+                    } else {
+                        displayVideoInfo(data.data);
+                    }
                 } else {
                     infoDiv.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> Error: ${data.error}</div>`;
                 }
@@ -607,7 +640,12 @@
                         progressBar.style.width = '100%';
                         progressBar.textContent = '100%';
                         progressBar.classList.add('bg-success');
-                        progressText.innerHTML = '<i class="fas fa-check-circle text-success"></i> Download completed successfully!';
+                        progressText.innerHTML = `
+                            <i class="fas fa-check-circle text-success"></i> Download completed successfully! 
+                            <a href="/downloads" class="btn btn-primary btn-sm ms-2">
+                                <i class="fas fa-folder"></i> View Downloads
+                            </a>
+                        `;
                     } else if (data.status === 'error') {
                         progressBar.classList.add('bg-danger');
                         progressText.innerHTML = `<i class="fas fa-exclamation-triangle text-danger"></i> Error: ${data.error || 'Unknown error'}`;
@@ -749,7 +787,9 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ urls: window.processedBatchUrls })
+                body: JSON.stringify({ 
+                    urls: window.processedBatchUrls 
+                })
             })
             .then(response => response.json())
             .then(data => {
@@ -821,6 +861,108 @@
             };
 
             setTimeout(checkProgress, 1000);
+        }
+
+        function displayPlaylistInfo(info) {
+            const infoDiv = document.getElementById('videoInfo');
+            
+            let videosHtml = '';
+            if (info.videos && info.videos.length > 0) {
+                videosHtml = '<h5 class="mt-4">Videos in Playlist:</h5>';
+                videosHtml += '<div class="playlist-videos" style="max-height: 300px; overflow-y: auto;">';
+                info.videos.forEach((video, index) => {
+                    videosHtml += `
+                        <div class="video-item d-flex align-items-center mb-2 p-2 border rounded">
+                            <div class="video-thumbnail me-3">
+                                <img src="${video.thumbnail || 'https://via.placeholder.com/120x90?text=No+Image'}" 
+                                     style="width: 80px; height: 60px; object-fit: cover; border-radius: 5px;" 
+                                     alt="Video thumbnail">
+                            </div>
+                            <div class="video-info">
+                                <h6 class="mb-1">${index + 1}. ${video.title}</h6>
+                                <small class="text-muted">Duration: ${formatDuration(video.duration)}</small><br>
+                                <small class="text-muted">Uploader: ${video.uploader}</small>
+                            </div>
+                        </div>
+                    `;
+                });
+                videosHtml += '</div>';
+            }
+
+            infoDiv.innerHTML = `
+                <div class="playlist-info-card">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-list-ol fa-2x me-3 text-primary"></i>
+                                <div>
+                                    <h4 class="mb-1">${info.title}</h4>
+                                    <p class="mb-0"><strong>Uploader:</strong> ${info.uploader}</p>
+                                    <p class="mb-0"><strong>Videos:</strong> ${info.video_count} videos</p>
+                                </div>
+                            </div>
+                            ${info.description ? `<p><strong>Description:</strong> ${info.description}</p>` : ''}
+                        </div>
+                    </div>
+                    
+                    ${videosHtml}
+                    
+                    <div class="text-center mt-4">
+                        <div class="mb-3">
+                            <label for="maxDownloads" class="form-label">Maximum videos to download (optional):</label>
+                            <input type="number" class="form-control" id="maxDownloads" min="1" max="${info.video_count}" 
+                                   placeholder="Leave empty to download all ${info.video_count} videos">
+                        </div>
+                        <button class="btn btn-success btn-lg" onclick="downloadPlaylist()">
+                            <i class="fas fa-download"></i> Download Playlist
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function downloadPlaylist() {
+            if (!currentVideoInfo || !currentVideoInfo.is_playlist) {
+                alert('No playlist information available');
+                return;
+            }
+
+            const progressDiv = document.getElementById('downloadProgress');
+            progressDiv.style.display = 'block';
+            progressDiv.innerHTML = `
+                <div class="progress mb-3">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                </div>
+                <div id="progressText">Starting playlist download...</div>
+            `;
+
+            const maxDownloads = document.getElementById('maxDownloads').value;
+            const payload = {
+                url: currentVideoInfo.url
+            };
+            
+            if (maxDownloads && maxDownloads > 0) {
+                payload.max_downloads = parseInt(maxDownloads);
+            }
+
+            fetch('/download_playlist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    trackDownloadProgress(data.download_id);
+                } else {
+                    progressDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+                }
+            })
+            .catch(error => {
+                progressDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            });
         }
     </script>
 </body>

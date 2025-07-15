@@ -8,9 +8,13 @@ from flask import Flask, render_template, request, jsonify, send_file, flash, re
 from werkzeug.utils import secure_filename
 import yt_dlp
 import re
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'
+app.secret_key = os.getenv('SECRET_KEY', 'your_secret_key_here')
 
 # Configuration
 UPLOAD_FOLDER = 'uploads'
@@ -42,7 +46,7 @@ class VideoDownloader:
         }
     
     def get_video_info(self, url):
-        """Extract video information without downloading"""
+        """Extract video information without downloading - automatically detect playlists"""
         try:
             # Platform-specific options
             is_instagram = 'instagram.com' in url.lower()
@@ -60,6 +64,11 @@ class VideoDownloader:
             
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=False)
+                
+                # Check if this is a playlist
+                if 'entries' in info and info['entries']:
+                    # This is a playlist - return playlist info instead
+                    return self.get_playlist_info(url)
                 
                 # Extract available formats
                 formats = []
@@ -312,7 +321,7 @@ class VideoDownloader:
                 ydl.download([url])
                 
             if download_id:
-                download_progress[download_id]['status'] = 'completed'
+                download_progress[download_id]['status'] = 'finished'
                 
             return {'success': True}
             
@@ -379,7 +388,8 @@ class VideoDownloader:
                     'description': info.get('description', ''),
                     'video_count': len(info['entries']),
                     'url': url,
-                    'videos': []
+                    'videos': [],
+                    'is_playlist': True  # Add this flag to identify playlist responses
                 }
                 
                 # Extract video information from playlist
@@ -784,10 +794,6 @@ def get_playlist_info():
     if not is_valid_url(url):
         return jsonify({'success': False, 'error': 'Unsupported URL format'})
     
-    # Check if it's a YouTube playlist URL
-    if 'list=' not in url and 'playlist' not in url.lower():
-        return jsonify({'success': False, 'error': 'URL does not appear to be a playlist'})
-    
     result = downloader.get_playlist_info(url)
     return jsonify(result)
 
@@ -885,4 +891,6 @@ def process_batch_urls():
     })
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.getenv('PORT', 5000))
+    debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug, host='0.0.0.0', port=port)
