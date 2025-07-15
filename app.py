@@ -581,6 +581,15 @@ def is_valid_url(url):
 def index():
     return render_template('index.html')
 
+@app.route('/health')
+def health_check():
+    """Health check endpoint for deployment platforms"""
+    return jsonify({
+        'status': 'healthy',
+        'service': 'video-downloader',
+        'timestamp': datetime.now().isoformat()
+    }), 200
+
 @app.route('/video_info', methods=['POST'])
 def get_video_info():
     """Get video information from URL"""

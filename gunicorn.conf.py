@@ -1,15 +1,17 @@
+import os
 import multiprocessing
 
-# Server socket
-bind = "0.0.0.0:5000"
+# Server socket - Railway provides PORT environment variable
+port = os.environ.get("PORT", "5000")
+bind = f"0.0.0.0:{port}"
 backlog = 2048
 
-# Worker processes
-workers = multiprocessing.cpu_count() * 2 + 1
+# Worker processes - optimized for cloud deployment
+workers = 2  # Fixed number for better stability on Railway
 worker_class = "sync"
 worker_connections = 1000
-timeout = 30
-keepalive = 2
+timeout = 300  # Increased for video downloads
+keepalive = 5
 
 # Restart workers after this many requests, to help prevent memory leaks
 max_requests = 1000
@@ -26,7 +28,7 @@ proc_name = "video_downloader"
 
 # Server mechanics
 daemon = False
-pidfile = "/tmp/video_downloader.pid"
+preload_app = True  # Important for Railway
 user = None
 group = None
 tmp_upload_dir = None

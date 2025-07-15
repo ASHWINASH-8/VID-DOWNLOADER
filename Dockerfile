@@ -17,15 +17,19 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Make startup script executable
+RUN chmod +x start.sh
+
 # Create necessary directories
 RUN mkdir -p downloads uploads
 
 # Set environment variables
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
+ENV PYTHONUNBUFFERED=1
 
-# Expose port
+# Expose port (Railway will set PORT dynamically)
 EXPOSE $PORT
 
-# Run the application
-CMD gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 300
+# Use the startup script for better debugging
+CMD ["./start.sh"]
