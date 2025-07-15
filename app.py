@@ -3,6 +3,7 @@ import csv
 import json
 import threading
 import time
+import tempfile
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, send_file, flash, redirect, url_for
 from werkzeug.utils import secure_filename
@@ -16,20 +17,25 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'your_secret_key_here')
 
-# Configuration
-UPLOAD_FOLDER = 'uploads'
-DOWNLOADS_FOLDER = 'downloads'
+# Configuration for Vercel (use temp directories)
+UPLOAD_FOLDER = tempfile.mkdtemp()
+DOWNLOADS_FOLDER = tempfile.mkdtemp()
 ALLOWED_EXTENSIONS = {'txt', 'csv'}
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['DOWNLOADS_FOLDER'] = DOWNLOADS_FOLDER
 
 # Create directories if they don't exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(DOWNLOADS_FOLDER, exist_ok=True)
 
-# Store download progress
+# Store download progress (in-memory for serverless)
 download_progress = {}
+
+# Vercel handler
+def handler(request):
+    return app(request.environ, lambda *args: None)
+
+# Export for Vercel
+def app_handler(environ, start_response):
+    return app(environ, start_response)
 
 def clean_ansi_codes(text):
     """Remove ANSI escape sequences (color codes) from text"""
@@ -898,6 +904,10 @@ def process_batch_urls():
             'total_videos': len(all_urls)
         }
     })
+
+# Vercel serverless function handler
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['DOWNLOADS_FOLDER'] = DOWNLOADS_FOLDER
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))

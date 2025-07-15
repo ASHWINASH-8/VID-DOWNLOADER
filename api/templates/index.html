@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Info Extractor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin: 50px auto;
+            padding: 40px;
+            max-width: 800px;
+        }
+        
+        .hero-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .hero-title {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .hero-subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+        
+        .url-input {
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+        }
+        
+        .url-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .info-card, .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .alert-info {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            color: #1976d2;
+        }
+    </style>
+</head>
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .url-input {
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .url-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .video-info-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .format-option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .format-option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .format-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            animation: formatSelected 0.6s ease-in-out;
+        }
+        
+        /* Override styles for selected formats regardless of type */
+        .format-option.selected.virtual-format {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .format-option.selected.best-format {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .format-option.selected::after {
+            opacity: 0.8;
+        }
+
+        .format-option.selected .audio-indicator {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .format-option.selected .text-muted {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+        
+        .format-option.best-format {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            position: relative;
+        }
+        
+        .format-option.best-format::after {
+            content: "RECOMMENDED";
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #fd7e14;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        
+        .format-option.virtual-format {
+            border-color: #dee2e6;
+            background: white;
+            color: #333;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .format-option.virtual-format::after {
+            content: "COMBINED";
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #6f42c1;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        
+        .audio-indicator {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-left: 8px;
+        }
+        
+        .has-audio {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .no-audio {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .progress-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+        
+        .nav-pills .nav-link {
+            border-radius: 25px;
+            margin-right: 10px;
+            font-weight: 600;
+        }
+        
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        /* Add a subtle pulse animation for selected formats */
+        @keyframes formatSelected {
+            0% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3); }
+            50% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5); }
+            100% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3); }
+        }
+
+        /* Playlist specific styles */
+        .playlist-info-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .playlist-videos {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .video-item {
+            background: white;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .video-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .video-thumbnail img {
+            border: 2px solid #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <h1 class="hero-title">
+                    <i class="fas fa-download"></i>
+                    Online Video Downloader 
+                </h1>
+                <p class="hero-subtitle">
+                    Download videos from YouTube, Instagram, TikTok and more with ease!
+                </p>
+            </div>
+
+            <!-- Navigation -->
+            <ul class="nav nav-pills nav-justified mb-4" id="pills-tab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="pills-single-tab" data-bs-toggle="pill" data-bs-target="#pills-single" type="button" role="tab">
+                        <i class="fas fa-link"></i> Single URL
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pills-batch-tab" data-bs-toggle="pill" data-bs-target="#pills-batch" type="button" role="tab">
+                        <i class="fas fa-list"></i> Batch Download
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pills-downloads-tab" data-bs-toggle="pill" data-bs-target="#pills-downloads" type="button" role="tab">
+                        <i class="fas fa-folder"></i> Downloads
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="pills-tabContent">
+                <!-- Single URL Tab -->
+                <div class="tab-pane fade show active" id="pills-single" role="tabpanel">
+                    <div class="feature-card">
+                        <div class="text-center">
+                            <i class="fas fa-video feature-icon"></i>
+                            <h3>Download Single Video</h3>
+                            <p class="text-muted">Enter a video URL to get information and download options</p>
+                        </div>
+
+                        <div class="row justify-content-center">
+                            <div class="col-md-8">
+                                <div class="input-group mb-3">
+                                    <input type="url" id="videoUrl" class="form-control url-input" 
+                                           placeholder="Enter video URL (YouTube, Instagram, TikTok, etc.)" required>
+                                    <button class="btn btn-primary" type="button" onclick="getVideoInfo()">
+                                        <i class="fas fa-search"></i> Get Info
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Video Info Display -->
+                        <div id="videoInfo" style="display: none;"></div>
+                        
+                        <!-- Download Progress -->
+                        <div id="downloadProgress" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Batch Download Tab -->
+                <div class="tab-pane fade" id="pills-batch" role="tabpanel">
+                    <div class="feature-card">
+                        <div class="text-center">
+                            <i class="fas fa-list feature-icon"></i>
+                            <h3>Batch Download</h3>
+                            <p class="text-muted">Upload files with URLs or paste playlist/individual URLs for bulk downloads</p>
+                        </div>
+
+                        <!-- URL Input Method -->
+                        <div class="mb-4">
+                            <h5><i class="fas fa-link"></i> Method 1: Paste URLs or Playlist</h5>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <textarea class="form-control url-input" id="batchUrls" rows="6" 
+                                              placeholder="Paste URLs here (one per line)&#10;Supports:&#10;- Individual video URLs&#10;- YouTube playlist URLs&#10;- Mix of both"></textarea>
+                                    <div class="form-text">
+                                        Paste individual video URLs or YouTube playlist URLs, one per line
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <button class="btn btn-primary btn-lg w-100 mb-2" onclick="processBatchUrls()">
+                                        <i class="fas fa-play"></i> Process URLs
+                                    </button>
+                                    <button class="btn btn-outline-secondary w-100" onclick="clearBatchUrls()">
+                                        <i class="fas fa-trash"></i> Clear
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- File Upload Method -->
+                        <div class="mb-4">
+                            <h5><i class="fas fa-upload"></i> Method 2: Upload File</h5>
+                            <form action="/batch_upload" method="post" enctype="multipart/form-data">
+                                <div class="row justify-content-center">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <input class="form-control" type="file" name="file" accept=".csv,.txt" required>
+                                            <div class="form-text">
+                                                Upload a CSV or TXT file with one URL per line (supports playlists)
+                                            </div>
+                                        </div>
+                                        <div class="text-center">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-upload"></i> Upload & Process
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- URL Processing Results -->
+                        <div id="urlProcessingResults" style="display: none;"></div>
+                        
+                        <!-- Batch Download Progress -->
+                        <div id="batchDownloadProgress" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Downloads Tab -->
+                <div class="tab-pane fade" id="pills-downloads" role="tabpanel">
+                    <div class="feature-card">
+                        <div class="text-center">
+                            <i class="fas fa-folder-open feature-icon"></i>
+                            <h3>Downloaded Files</h3>
+                            <p class="text-muted">View and download your processed videos</p>
+                        </div>
+                        
+                        <div class="text-center">
+                            <a href="/downloads" class="btn btn-primary">
+                                <i class="fas fa-eye"></i> View Downloads
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="mt-3">
+                        {% for message in messages %}
+                            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let selectedFormatId = null;
+        let currentVideoInfo = null;
+        
+        function getVideoInfo() {
+            const url = document.getElementById('videoUrl').value.trim();
+            if (!url) {
+                alert('Please enter a video URL');
+                return;
+            }
+
+            const infoDiv = document.getElementById('videoInfo');
+            infoDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Getting video information...</div>';
+            infoDiv.style.display = 'block';
+
+            fetch('/video_info', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url: url })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentVideoInfo = data.data;
+                    // Check if this is a playlist
+                    if (data.data.is_playlist) {
+                        displayPlaylistInfo(data.data);
+                    } else {
+                        displayVideoInfo(data.data);
+                    }
+                } else {
+                    infoDiv.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> Error: ${data.error}</div>`;
+                }
+            })
+            .catch(error => {
+                infoDiv.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</div>`;
+            });
+        }
+
+        function displayVideoInfo(info) {
+            const infoDiv = document.getElementById('videoInfo');
+            
+            let formatsHtml = '';
+            if (info.formats && info.formats.length > 0) {
+                formatsHtml = '<h5 class="mt-4">Available Formats:</h5>';
+                info.formats.forEach(format => {
+                    const fileSize = format.filesize ? `${(format.filesize / 1024 / 1024).toFixed(2)} MB` : 'Unknown';
+                    const hasAudio = format.has_audio || (format.acodec && format.acodec !== 'none');
+                    const hasVideo = format.has_video || (format.vcodec && format.vcodec !== 'none');
+                    const isBest = format.is_best || false;
+                    const isVirtual = format.is_virtual || false;
+                    
+                    // Only show formats that have both video and audio
+                    if (hasAudio && hasVideo) {
+                        // Audio indicator
+                        let audioIndicator = '';
+                        if (isVirtual) {
+                            audioIndicator = '<span class="audio-indicator has-audio"><i class="fas fa-magic"></i> Combined (Video+Audio)</span>';
+                        } else {
+                            audioIndicator = '<span class="audio-indicator has-audio"><i class="fas fa-volume-up"></i> Audio + Video</span>';
+                        }
+                        
+                        let formatClass = 'format-option';
+                        if (isBest) {
+                            formatClass += ' best-format';
+                        } else if (isVirtual) {
+                            formatClass += ' virtual-format';
+                        }
+                        
+                        formatsHtml += `
+                            <div class="${formatClass}" onclick="selectFormat('${format.format_id}', this)">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>${format.resolution}</strong> (${format.ext})
+                                        ${audioIndicator}
+                                        <br><small class="text-muted">Video: ${format.vcodec || 'none'} | Audio: ${format.acodec || 'none'}</small>
+                                        ${isVirtual ? '<br><small class="text-info"><i class="fas fa-magic"></i> Auto-merged format</small>' : ''}
+                                    </div>
+                                    <div class="text-end">
+                                        <small>Size: ${fileSize}</small>
+                                        ${format.fps ? `<br><small>FPS: ${format.fps}</small>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            }
+
+            infoDiv.innerHTML = `
+                <div class="video-info-card">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <img src="${info.thumbnail}" class="img-fluid rounded" alt="Video thumbnail">
+                        </div>
+                        <div class="col-md-8">
+                            <h4>${info.title}</h4>
+                            <p><strong>Uploader:</strong> ${info.uploader}</p>
+                            <p><strong>Duration:</strong> ${formatDuration(info.duration)}</p>
+                            <p><strong>Views:</strong> ${info.view_count ? info.view_count.toLocaleString() : 'N/A'}</p>
+                        </div>
+                    </div>
+                    
+                    ${formatsHtml}
+                    
+                    <div class="text-center mt-4">
+                        <button class="btn btn-success btn-lg" onclick="downloadVideo()">
+                            <i class="fas fa-download"></i> Download Video
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Auto-select the best format if available
+            if (info.best_format_id) {
+                setTimeout(() => {
+                    const bestFormatElement = document.querySelector(`.format-option.best-format`);
+                    if (bestFormatElement) {
+                        selectFormat(info.best_format_id, bestFormatElement);
+                    }
+                }, 100);
+            } else if (info.formats && info.formats.length > 0) {
+                // Auto-select the first combined format (since we only show combined formats now)
+                setTimeout(() => {
+                    const firstFormat = document.querySelector('.format-option');
+                    if (firstFormat) {
+                        const formatId = firstFormat.getAttribute('onclick').match(/'([^']+)'/)[1];
+                        selectFormat(formatId, firstFormat);
+                    }
+                }, 100);
+            }
+        }
+
+        function selectFormat(formatId, element) {
+            // Remove selected class from all format options
+            document.querySelectorAll('.format-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked option with smooth transition
+            element.classList.add('selected');
+            selectedFormatId = formatId;
+            
+            // Scroll the selected element into view if needed
+            element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            console.log('Selected format:', formatId);
+        }
+
+        function downloadVideo() {
+            if (!currentVideoInfo) {
+                alert('Please get video information first');
+                return;
+            }
+
+            const progressDiv = document.getElementById('downloadProgress');
+            progressDiv.innerHTML = `
+                <div class="progress-container">
+                    <h5><i class="fas fa-download"></i> Starting download...</h5>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                    </div>
+                    <div class="mt-2">
+                        <small id="progressText">Initializing...</small>
+                    </div>
+                </div>
+            `;
+            progressDiv.style.display = 'block';
+
+            fetch('/download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    url: currentVideoInfo.url,
+                    format_id: selectedFormatId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    trackDownloadProgress(data.download_id);
+                } else {
+                    progressDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+                }
+            })
+            .catch(error => {
+                progressDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            });
+        }
+
+        function trackDownloadProgress(downloadId) {
+            const progressBar = document.querySelector('.progress-bar');
+            const progressText = document.getElementById('progressText');
+
+            const checkProgress = () => {
+                fetch(`/progress/${downloadId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'downloading') {
+                        const percent = parseFloat(data.percent.replace('%', ''));
+                        progressBar.style.width = `${percent}%`;
+                        progressBar.textContent = data.percent;
+                        progressText.textContent = `Downloading... ${data.percent} at ${data.speed}`;
+                        setTimeout(checkProgress, 1000);
+                    } else if (data.status === 'completed' || data.status === 'finished') {
+                        progressBar.style.width = '100%';
+                        progressBar.textContent = '100%';
+                        progressBar.classList.add('bg-success');
+                        progressText.innerHTML = `
+                            <i class="fas fa-check-circle text-success"></i> Download completed successfully! 
+                            <a href="/downloads" class="btn btn-primary btn-sm ms-2">
+                                <i class="fas fa-folder"></i> View Downloads
+                            </a>
+                        `;
+                    } else if (data.status === 'error') {
+                        progressBar.classList.add('bg-danger');
+                        progressText.innerHTML = `<i class="fas fa-exclamation-triangle text-danger"></i> Error: ${data.error || 'Unknown error'}`;
+                    } else {
+                        setTimeout(checkProgress, 1000);
+                    }
+                })
+                .catch(error => {
+                    progressText.innerHTML = `<i class="fas fa-exclamation-triangle text-danger"></i> Error checking progress: ${error.message}`;
+                });
+            };
+
+            setTimeout(checkProgress, 1000);
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds) return 'Unknown';
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            if (hours > 0) {
+                return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            } else {
+                return `${minutes}:${secs.toString().padStart(2, '0')}`;
+            }
+        }
+
+        function processBatchUrls() {
+            const urls = document.getElementById('batchUrls').value.trim();
+            if (!urls) {
+                alert('Please enter some URLs');
+                return;
+            }
+
+            const urlList = urls.split('\n').map(url => url.trim()).filter(url => url);
+            if (urlList.length === 0) {
+                alert('No valid URLs found');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('urlProcessingResults');
+            resultsDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Processing URLs and expanding playlists...</div>';
+            resultsDiv.style.display = 'block';
+
+            // Process URLs and expand any playlists
+            fetch('/process_batch_urls', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ urls: urlList })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayBatchResults(data.data);
+                } else {
+                    resultsDiv.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> Error: ${data.error}</div>`;
+                }
+            })
+            .catch(error => {
+                resultsDiv.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</div>`;
+            });
+        }
+
+        function clearBatchUrls() {
+            document.getElementById('batchUrls').value = '';
+            document.getElementById('urlProcessingResults').style.display = 'none';
+            document.getElementById('batchDownloadProgress').style.display = 'none';
+        }
+
+        function displayBatchResults(results) {
+            const resultsDiv = document.getElementById('urlProcessingResults');
+            
+            let totalVideos = results.individual_urls.length + results.playlist_videos.length;
+            let resultsHtml = `
+                <div class="video-info-card">
+                    <h4>Found ${totalVideos} videos to download</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Individual URLs:</strong> ${results.individual_urls.length}</p>
+                            <p><strong>Playlist Videos:</strong> ${results.playlist_videos.length}</p>
+                            <p><strong>Playlists Processed:</strong> ${results.playlists_processed}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Total Download Size:</strong> ${results.estimated_size || 'Calculating...'}</p>
+                            <p><strong>Estimated Time:</strong> ${results.estimated_time || 'Calculating...'}</p>
+                        </div>
+                    </div>
+            `;
+
+            if (results.playlist_videos.length > 0) {
+                resultsHtml += `
+                    <h5 class="mt-3">Sample Videos from Playlists:</h5>
+                    <div style="max-height: 200px; overflow-y: auto;">
+                `;
+                results.playlist_videos.slice(0, 5).forEach((video, index) => {
+                    resultsHtml += `
+                        <div class="border rounded p-2 mb-2">
+                            <strong>${video.title}</strong>
+                            <br><small class="text-muted">From: ${video.playlist_title} | Duration: ${formatDuration(video.duration)}</small>
+                        </div>
+                    `;
+                });
+                if (results.playlist_videos.length > 5) {
+                    resultsHtml += `<div class="text-center"><small class="text-muted">... and ${results.playlist_videos.length - 5} more videos</small></div>`;
+                }
+                resultsHtml += '</div>';
+            }
+
+            resultsHtml += `
+                    <div class="text-center mt-4">
+                        <button class="btn btn-success btn-lg" onclick="startBatchDownload()">
+                            <i class="fas fa-download"></i> Download All ${totalVideos} Videos
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            resultsDiv.innerHTML = resultsHtml;
+            
+            // Store the processed URLs for download
+            window.processedBatchUrls = results.all_urls;
+        }
+
+        function startBatchDownload() {
+            if (!window.processedBatchUrls || window.processedBatchUrls.length === 0) {
+                alert('No URLs to download. Please process URLs first.');
+                return;
+            }
+
+            const progressDiv = document.getElementById('batchDownloadProgress');
+            progressDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Starting batch download...</div>';
+            progressDiv.style.display = 'block';
+
+            fetch('/batch_download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    urls: window.processedBatchUrls 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    setupBatchProgressTracking(data.download_ids);
+                } else {
+                    progressDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+                }
+            })
+            .catch(error => {
+                progressDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            });
+        }
+
+        function setupBatchProgressTracking(downloadIds) {
+            const progressDiv = document.getElementById('batchDownloadProgress');
+            progressDiv.innerHTML = '';
+
+            downloadIds.forEach((downloadId, index) => {
+                const progressItem = document.createElement('div');
+                progressItem.className = 'progress-container mb-3';
+                progressItem.id = `progress-${downloadId}`;
+                progressItem.innerHTML = `
+                    <h6>Video ${index + 1} of ${downloadIds.length}</h6>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                    </div>
+                    <small class="progress-text">Initializing...</small>
+                `;
+                progressDiv.appendChild(progressItem);
+            });
+
+            // Start tracking all downloads
+            downloadIds.forEach(downloadId => {
+                trackBatchProgress(downloadId);
+            });
+        }
+
+        function trackBatchProgress(downloadId) {
+            const progressItem = document.getElementById(`progress-${downloadId}`);
+            const progressBar = progressItem.querySelector('.progress-bar');
+            const progressText = progressItem.querySelector('.progress-text');
+
+            const checkProgress = () => {
+                fetch(`/progress/${downloadId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'downloading') {
+                        const percent = parseFloat(data.percent.replace('%', ''));
+                        progressBar.style.width = `${percent}%`;
+                        progressBar.textContent = data.percent;
+                        progressText.textContent = `Downloading... ${data.percent} at ${data.speed}`;
+                        setTimeout(checkProgress, 1000);
+                    } else if (data.status === 'completed' || data.status === 'finished') {
+                        progressBar.style.width = '100%';
+                        progressBar.textContent = '100%';
+                        progressBar.classList.add('bg-success');
+                        progressText.innerHTML = '<i class="fas fa-check-circle text-success"></i> Download completed!';
+                    } else if (data.status === 'error') {
+                        progressBar.classList.add('bg-danger');
+                        progressText.innerHTML = `<i class="fas fa-exclamation-triangle text-danger"></i> Error: ${data.error || 'Unknown error'}`;
+                    } else {
+                        setTimeout(checkProgress, 1000);
+                    }
+                })
+                .catch(error => {
+                    progressText.innerHTML = `<i class="fas fa-exclamation-triangle text-danger"></i> Error: ${error.message}`;
+                });
+            };
+
+            setTimeout(checkProgress, 1000);
+        }
+
+        function displayPlaylistInfo(info) {
+            const infoDiv = document.getElementById('videoInfo');
+            
+            let videosHtml = '';
+            if (info.videos && info.videos.length > 0) {
+                videosHtml = '<h5 class="mt-4">Videos in Playlist:</h5>';
+                videosHtml += '<div class="playlist-videos" style="max-height: 300px; overflow-y: auto;">';
+                info.videos.forEach((video, index) => {
+                    videosHtml += `
+                        <div class="video-item d-flex align-items-center mb-2 p-2 border rounded">
+                            <div class="video-thumbnail me-3">
+                                <img src="${video.thumbnail || 'https://via.placeholder.com/120x90?text=No+Image'}" 
+                                     style="width: 80px; height: 60px; object-fit: cover; border-radius: 5px;" 
+                                     alt="Video thumbnail">
+                            </div>
+                            <div class="video-info">
+                                <h6 class="mb-1">${index + 1}. ${video.title}</h6>
+                                <small class="text-muted">Duration: ${formatDuration(video.duration)}</small><br>
+                                <small class="text-muted">Uploader: ${video.uploader}</small>
+                            </div>
+                        </div>
+                    `;
+                });
+                videosHtml += '</div>';
+            }
+
+            infoDiv.innerHTML = `
+                <div class="playlist-info-card">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-list-ol fa-2x me-3 text-primary"></i>
+                                <div>
+                                    <h4 class="mb-1">${info.title}</h4>
+                                    <p class="mb-0"><strong>Uploader:</strong> ${info.uploader}</p>
+                                    <p class="mb-0"><strong>Videos:</strong> ${info.video_count} videos</p>
+                                </div>
+                            </div>
+                            ${info.description ? `<p><strong>Description:</strong> ${info.description}</p>` : ''}
+                        </div>
+                    </div>
+                    
+                    ${videosHtml}
+                    
+                    <div class="text-center mt-4">
+                        <div class="mb-3">
+                            <label for="maxDownloads" class="form-label">Maximum videos to download (optional):</label>
+                            <input type="number" class="form-control" id="maxDownloads" min="1" max="${info.video_count}" 
+                                   placeholder="Leave empty to download all ${info.video_count} videos">
+                        </div>
+                        <button class="btn btn-success btn-lg" onclick="downloadPlaylist()">
+                            <i class="fas fa-download"></i> Download Playlist
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function downloadPlaylist() {
+            if (!currentVideoInfo || !currentVideoInfo.is_playlist) {
+                alert('No playlist information available');
+                return;
+            }
+
+            const progressDiv = document.getElementById('downloadProgress');
+            progressDiv.style.display = 'block';
+            progressDiv.innerHTML = `
+                <div class="progress mb-3">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                </div>
+                <div id="progressText">Starting playlist download...</div>
+            `;
+
+            const maxDownloads = document.getElementById('maxDownloads').value;
+            const payload = {
+                url: currentVideoInfo.url
+            };
+            
+            if (maxDownloads && maxDownloads > 0) {
+                payload.max_downloads = parseInt(maxDownloads);
+            }
+
+            fetch('/download_playlist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    trackDownloadProgress(data.download_id);
+                } else {
+                    progressDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+                }
+            })
+            .catch(error => {
+                progressDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            });
+        }
+    </script>
+</body>
+</html>
